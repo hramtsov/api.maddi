@@ -19,26 +19,22 @@ Route::group([
 ], function () {
 
 	Route::post('/login', 'AuthController@login');
-	Route::post('/register', 'AuthController@register');
+	Route::post('/register/{role}', 'AuthController@register')->where('role', 'client|master'); //
 
-	Route::group(['prefix' => 'location'], function () {
-		Route::get('list', 'LocationController@getList'); // location/list
+
+	Route::group(['middleware' => ['auth:api']], function () {
+			Route::post('/logout', 'AuthController@logout');
+			Route::get('/user', 'AuthController@user');
+
+
+			Route::group(['prefix' => 'location'], function () {
+				Route::get('list', 'LocationController@getList'); // location/list
+			});
+
+			Route::group(['prefix' => 'category'], function () {
+				Route::get('list', 'CategoryController@getList'); // category/list
+			});
 	});
-
-
-//	Route::group(['middleware' => ['auth:api']], function () {
-//		Route::post('/logout', 'AuthController@logout');
-//		Route::get('/user', 'AuthController@user');
-//
-//
-//		Route::group(['prefix' => 'location'], function () {
-//			Route::get('list', 'LocationController@getList'); // location/list
-//		});
-//
-//		Route::group(['prefix' => 'category'], function () {
-//			Route::get('list', 'CategoryController@getList'); // category/list
-//		});
-//	});
 });
 
 //Route::middleware('auth:api')->get('/user', function (Request $request) {

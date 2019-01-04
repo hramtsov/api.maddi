@@ -10,6 +10,7 @@ use Validator;
 use Response;
 use Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Crypt;
 
 class AuthController extends BaseController
 {
@@ -59,25 +60,58 @@ class AuthController extends BaseController
 	}
 
 
-	public function register( Request $request){
-		$validator = Validator::make($request -> all(),[
-			'email' => 'required|string|email|max:255|unique:users',
-			'name' => 'required',
-			'password'=> 'required'
-		]);
+	public function register(Request $request, $role){
 
-		if ($validator -> fails()) {
-			return $this->sendError(101, $validator->errors());
+		switch ($role) {
+			case 'client':
+
+					$validator = Validator::make($request -> all(),[
+						'phone' => 'required|numeric|unique:users',
+					]);
+
+					if ($validator -> fails()) {
+						return $this->sendError(101, $validator->errors());
+					}
+
+
+					$token = Crypt::encrypt([
+						'code' => '12345',
+						'time' => Carbon::now()
+					]);
+
+					$user = User::create([
+							'phone' => $request->get('phone'),
+							'phone_token' => $token,
+							'role' => $role
+						]);
+
+					break;
+
+			case 'master':
+
+//					$validator = Validator::make($request -> all(),[
+//						'email' => 'required|string|email|max:255|unique:users',
+//						'name' => 'required',
+//						'password'=> 'required'
+//					]);
+//
+//					if ($validator -> fails()) {
+//						return $this->sendError(101, $validator->errors());
+//					}
+//
+//					$user = User::create([
+//						'name' => $request->get('name'),
+//						'email' => $request->get('email'),
+//						//'password'=> bcrypt($request->get('password')),
+//						'role' => $role
+//					]);
+
+					break;
 		}
 
-		$user = User::create([
-			'name' => $request->get('name'),
-			'email' => $request->get('email'),
-			'password'=> bcrypt($request->get('password')),
-		]);
+
 
 		if ($user) {
-			//$token =  $user->createToken('Personal Access Token - Maddi')->accessToken;
 			return $this->sendResponse(['user' => $user], 202);
 		} else {
 			return $this->sendError(103, $user);
